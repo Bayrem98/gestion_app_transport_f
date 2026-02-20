@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: transport-app
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn transport_app.wsgi:application"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 4
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: transport-db
+          property: connectionString
+      - key: DJANGO_SETTINGS_MODULE
+        value: transport_app.settings
+      - key: DEBUG
+        value: False
+      - key: POSITIONSTACK_API_KEY
+        value: 88bcabc4997f720becd5cb84b44c7b6e
+
+databases:
+  - name: transport-db
+    databaseName: transport
+    user: transport_user
+    plan: free
