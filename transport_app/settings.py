@@ -4,17 +4,17 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# Clé secrète
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-votre-cle-secrete-ici')
 
+# API Key
 POSITIONSTACK_API_KEY = os.environ.get('POSITIONSTACK_API_KEY', '88bcabc4997f720becd5cb84b44c7b6e')
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# Mode DEBUG
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
+# Hosts autorisés
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com']
-if not DEBUG:
-    ALLOWED_HOSTS += ['.onrender.com']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'rest_framework',
     'corsheaders',
-    'whitenoise.runserver_nostatic',  # Pour les fichiers statiques
+    'whitenoise.runserver_nostatic',
     # Vos applications
     'gestion',
     'gestion.geolocalisation',
@@ -37,7 +37,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Pour servir les fichiers statiques
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -67,7 +67,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'transport_app.wsgi.application'
 
-# Configuration de la base de données
+# Base de données
 if DEBUG:
     DATABASES = {
         'default': {
@@ -79,8 +79,7 @@ else:
     DATABASES = {
         'default': dj_database_url.config(
             default=os.environ.get('DATABASE_URL'),
-            conn_max_age=600,
-            conn_health_checks=True,
+            conn_max_age=600
         )
     }
 
