@@ -2,11 +2,9 @@ services:
   - type: web
     name: transport-app
     runtime: python
-    buildCommand: | 
-      pip install --upgrade pip
-      pip install -r requirements.txt
-      python manage.py collectstatic --noinput
-      python manage.py migrate
+    buildCommand: |
+      chmod +x build.sh
+      ./build.sh
     startCommand: gunicorn transport_app.wsgi:application
     envVars:
       - key: SECRET_KEY
