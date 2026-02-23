@@ -235,7 +235,7 @@ L.GeometryField = L.Class.extend({
     },
 
     onDeleted: function (e) {
-        var layer = e.layer;
+        var layer = e.layer || e.layers;
         this.drawnItems.removeLayer(layer);
         this.store.save(this.drawnItems);
     },
@@ -258,6 +258,7 @@ L.GeometryField = L.Class.extend({
                 polyline: this.options.is_linestring,
                 polygon: this.options.is_polygon,
                 circle: false, // Turns off this drawing tool
+                circlemarker: false, // Turns off this drawing tool
                 rectangle: this.options.is_polygon,
                 marker: this.options.is_point,
             }

@@ -18,4 +18,7 @@ mkdir -p media
 echo "=== Migrations ==="
 python manage.py migrate --noinput
 
+echo "=== Création des données par défaut (inclut superutilisateur) ==="
+python creer_superuser.py
+
 echo "=== Build terminé ==="
