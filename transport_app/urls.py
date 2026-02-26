@@ -8,7 +8,7 @@ from gestion import views as gestion_views  # IMPORTANT: ajouter cet import
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', auth_views.LoginView.as_view(template_name='gestion/login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('logout/', gestion_views.admin_logout_view, name='logout'),
     path('', include('gestion.urls')),
     path('geolocalisation/', include('gestion.geolocalisation.urls')),
     path('mobile/', include('chauffeurs_mobile.urls')),

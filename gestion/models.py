@@ -146,31 +146,29 @@ class Chauffeur(models.Model):
         super().save(*args, **kwargs)
     
     def force_logout_all_devices(self):
-       
+   
         try:
             from django.contrib.sessions.models import Session
             from django.utils import timezone
-            
+        
             sessions_deleted = 0
             sessions = Session.objects.filter(expire_date__gt=timezone.now())
-            
+        
             for session in sessions:
                 try:
                     session_data = session.get_decoded()
-                    if session_data.get('chauffeur_id') == self.id:
+                    if session_data.get('mobile_chauffeur_id') == self.id or                        session_data.get('chauffeur_id') == self.id:
                         session.delete()
                         sessions_deleted += 1
-                except Exception as e:
-                    print(f"⚠️ Erreur session {session.session_key[:10]}: {e}")
+                except:
                     continue
-            
-            print(f"🚪 {sessions_deleted} session(s) supprimée(s) pour {self.nom}")
+        
+            print(f"✅ {sessions_deleted} session(s) supprimée(s) pour {self.nom}")
             return sessions_deleted
-            
+        
         except Exception as e:
-            print(f"❌ Erreur déconnexion forcée: {e}")
+            print(f"❌ Erreur: {e}")
             return 0
-    
     def vehicule_info(self):
         if self.numero_voiture:
             return f"{self.get_type_chauffeur_display()} - {self.numero_voiture}"
@@ -634,3 +632,31 @@ class Affectation(models.Model):
         if self.course:
             self.prix_societe = self.course.get_prix_par_societe()
         super().save(*args, **kwargs)
+# Ajoutez ceci dans gestion/models.py (à la fin du fichier)
+
+    from django.db.models.signals import pre_delete
+    from django.dispatch import receiver
+
+    @receiver(pre_delete, sender=Chauffeur)
+    def delete_chauffeur_sessions(sender, instance, **kwargs):
+   
+        print(f"🚨 Suppression du chauffeur {instance.nom} - Déconnexion des sessions...")
+        try:
+            from django.contrib.sessions.models import Session
+            from django.utils import timezone
+        
+            sessions_deleted = 0
+            sessions = Session.objects.filter(expire_date__gt=timezone.now())
+        
+            for session in sessions:
+                try:
+                    session_data = session.get_decoded()
+                    if session_data.get('mobile_chauffeur_id') == instance.id:
+                        session.delete()
+                        sessions_deleted += 1
+                except:
+                    continue
+        
+            print(f"✅ {sessions_deleted} session(s) supprimée(s)")
+        except Exception as e:
+            print(f"❌ Erreur: {e}")

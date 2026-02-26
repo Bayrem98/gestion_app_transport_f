@@ -27,6 +27,29 @@ from .models import Agent
 from django.utils import timezone
 import random
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth import logout
+from django.contrib import messages
+from django.shortcuts import redirect
+
+def admin_logout_view(request):
+   
+    # Sauvegarder les clés mobile AVANT déconnexion
+    mobile_keys = {}
+    for key in list(request.session.keys()):
+        if key.startswith('mobile_'):
+            mobile_keys[key] = request.session[key]
+    
+    # Déconnexion normale
+    logout(request)
+    
+    # RESTAURER les clés mobile
+    for key, value in mobile_keys.items():
+        request.session[key] = value
+    
+    request.session.save()
+    
+    messages.success(request, "Déconnexion réussie. Vos sessions mobile sont préservées.")
+    return redirect('login')
 def is_admin(user):
     return user.is_authenticated and user.is_staff
 @login_required
