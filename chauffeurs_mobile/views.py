@@ -461,7 +461,7 @@ def mobile_reservation_view(request):
 
 def mobile_historique_view(request):
     """Page historique"""
-    return render(request, 'chauffeurs_mobile/historique.html')
+    return render(request, 'chauffeurs_mobile/Historique.html')
 
 def mobile_profile_view(request):
     """Page profil"""
@@ -2248,6 +2248,7 @@ def api_annuler_course(request):
 @csrf_exempt
 @require_POST
 def api_creer_course(request):
+    """API pour créer une course avec agents sélectionnés"""
     chauffeur_id = request.session.get('chauffeur_id')
     
     if not chauffeur_id:
@@ -2275,18 +2276,13 @@ def api_creer_course(request):
                 'error': 'Données manquantes'
             }, status=400)
         
-        # IMPORTANT: Utiliser datetime.now() pour l'heure locale
-        from datetime import datetime
-        now = datetime.now()
-        heure_actuelle = now.hour
-        
         # Valider la date
         try:
             date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
         except ValueError:
             return JsonResponse({'success': False, 'error': 'Format de date invalide'}, status=400)
             
-        aujourd_hui = date_obj  # Utiliser la date fournie
+        aujourd_hui = timezone.now().date()
         
         if date_obj != aujourd_hui:
             return JsonResponse({
@@ -2295,29 +2291,33 @@ def api_creer_course(request):
             }, status=400)
         
         heure_int = int(heure)
+        heure_actuelle = timezone.now().hour
         
+        # ========== LOGIQUE CORRECTE ==========
+        # On autorise les heures PASSÉES (rattrapage)
+        # On interdit les heures FUTURES (impossible)
+        # Gestion spéciale pour les heures de nuit (0h-3h) - toujours futures (interdites)
         print(f"⏰ Vérification: Heure demandée: {heure_int}h, Heure actuelle: {heure_actuelle}h")
         
-        # Heures de nuit (00h-03h) : toujours futures
+        # Heures de nuit (00h-03h) : toujours futures car appartiennent à la nuit prochaine
         if heure_int < 4:
-            print(f"  ❌ Heure de nuit {heure_int}h - INTERDITE")
+            print(f"  ❌ Heure de nuit {heure_int}h - FUTURE (interdite)")
             return JsonResponse({
                 'success': False,
-                'error': f"Vous ne pouvez pas créer une course pour {heure_int}h (heure de nuit)."
+                'error': f"Vous ne pouvez pas créer une course pour {heure_int}h (c'est la nuit prochaine - heure future)."
             }, status=400)
-        
-        # Heures de jour - comparaison simple
-        if heure_int > heure_actuelle:
-            print(f"  ❌ Heure future {heure_int}h > {heure_actuelle}h - INTERDITE")
-            return JsonResponse({
-                'success': False,
-                'error': f"Vous ne pouvez pas créer une course pour {heure_int}h (heure future)."
-            }, status=400)
-        
-        # ✅ Heure passée ou actuelle - AUTORISÉE
-        print(f"  ✅ Heure {heure_int}h - autorisée (rattrapage)")
-        
-       
+        else:
+            # Heures de jour
+            if heure_int > heure_actuelle:
+                # Heure future
+                print(f"  ❌ Heure future {heure_int}h > {heure_actuelle}h - INTERDITE")
+                return JsonResponse({
+                    'success': False,
+                    'error': f"Vous ne pouvez pas créer une course pour {heure_int}h (heure future). Vous ne pouvez créer que pour des heures déjà passées (rattrapage)."
+                }, status=400)
+            else:
+                # Heure passée ou actuelle - autorisée
+                print(f"  ✅ Heure passée ou actuelle {heure_int}h - autorisée (rattrapage)")
         # =================================================
         
         # Récupérer les modèles
